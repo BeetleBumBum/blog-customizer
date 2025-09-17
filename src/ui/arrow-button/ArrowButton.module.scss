@@ -21,6 +21,11 @@
 	background-color: #787878;
 }
 
+.container:focus {
+	border: none;
+	outline: none;
+}
+
 .container_open {
 	transform: translate(616px);
 }

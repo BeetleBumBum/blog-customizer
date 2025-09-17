@@ -16,57 +16,61 @@ import {
 	backgroundColors,
 	contentWidthArr,
 	fontSizeOptions,
+	defaultArticleState,
 } from 'src/constants/articleProps';
 import { Separator } from 'src/ui/separator';
-import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
+import { useOutsideClickCloseOrEsc } from 'src/ui/select/hooks/useOutsideClickClose';
 
-// Подъём состояния через пропсы
-type TArticleParamsFormProps = {
-	params: ArticleStateType;
-	onChange: (param: keyof ArticleStateType, value: OptionType) => void;
-	onSubmit: () => void;
+type TArticleParamsForm = {
+	initialParams: ArticleStateType;
+	onSubmit: (params: ArticleStateType) => void;
 	onReset: () => void;
 };
 
 export const ArticleParamsForm = ({
-	params,
-	onChange,
+	initialParams,
 	onSubmit,
 	onReset,
-}: TArticleParamsFormProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+}: TArticleParamsForm) => {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const [articleParams, setArticleParams] = useState(initialParams);
 
 	const sidebarRef = useRef<HTMLDivElement>(null);
 
-	useOutsideClickClose({
-		isOpen,
+	useOutsideClickCloseOrEsc({
+		isSidebarOpen,
 		rootRef: sidebarRef,
-		onClose: () => setIsOpen(false),
-		onChange: setIsOpen,
+		onClose: () => setIsSidebarOpen(false),
+		onChange: setIsSidebarOpen,
 	});
 
-	const handleSubmit = (evt: React.FormEvent) => {
-		evt.preventDefault();
-		onSubmit();
+	const updateParams = (param: keyof ArticleStateType, value: OptionType) => {
+		setArticleParams((prevParam) => ({ ...prevParam, [param]: value }));
 	};
 
-	const handleReset = (evt: React.FormEvent) => {
+	const handleSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
 		evt.preventDefault();
+		onSubmit(articleParams);
+	};
+
+	const handleReset = (evt: React.FormEvent<HTMLFormElement>) => {
+		evt.preventDefault();
+		setArticleParams(defaultArticleState);
 		onReset();
 	};
 
 	// показываем сайдбар
 	const sidebarShow = clsx({
 		[styles.container]: true,
-		[styles.container_open]: isOpen,
+		[styles.container_open]: isSidebarOpen,
 	});
 
 	return (
 		<>
 			<ArrowButton
-				isOpen={isOpen}
+				isOpen={isSidebarOpen}
 				onClick={() => {
-					setIsOpen(!isOpen);
+					setIsSidebarOpen(!isSidebarOpen);
 				}}
 			/>
 			<aside ref={sidebarRef} className={sidebarShow}>
@@ -81,8 +85,8 @@ export const ArticleParamsForm = ({
 
 					{/* шрифт */}
 					<Select
-						selected={params.fontFamilyOption}
-						onChange={(value) => onChange('fontFamilyOption', value)}
+						selected={articleParams.fontFamilyOption}
+						onChange={(value) => updateParams('fontFamilyOption', value)}
 						options={fontFamilyOptions}
 						title='шрифт'
 					/>
@@ -92,16 +96,16 @@ export const ArticleParamsForm = ({
 					<RadioGroup
 						name='font-size'
 						options={fontSizeOptions}
-						selected={params.fontSizeOption}
-						onChange={(value) => onChange('fontSizeOption', value)}
+						selected={articleParams.fontSizeOption}
+						onChange={(value) => updateParams('fontSizeOption', value)}
 						title='размер шрифта'
 					/>
 					<div style={{ blockSize: 47 }}></div>
 
 					{/* цвет шрифта */}
 					<Select
-						selected={params.fontColor}
-						onChange={(value) => onChange('fontColor', value)}
+						selected={articleParams.fontColor}
+						onChange={(value) => updateParams('fontColor', value)}
 						options={fontColors}
 						title='цвет шрифта'
 					/>
@@ -113,8 +117,8 @@ export const ArticleParamsForm = ({
 
 					{/* цвет фона */}
 					<Select
-						selected={params.backgroundColor}
-						onChange={(value) => onChange('backgroundColor', value)}
+						selected={articleParams.backgroundColor}
+						onChange={(value) => updateParams('backgroundColor', value)}
 						options={backgroundColors}
 						title='цвет фона'
 					/>
@@ -122,8 +126,8 @@ export const ArticleParamsForm = ({
 
 					{/* ширина контента */}
 					<Select
-						selected={params.contentWidth}
-						onChange={(value) => onChange('contentWidth', value)}
+						selected={articleParams.contentWidth}
+						onChange={(value) => updateParams('contentWidth', value)}
 						options={contentWidthArr}
 						title='ширина контента'
 					/>
