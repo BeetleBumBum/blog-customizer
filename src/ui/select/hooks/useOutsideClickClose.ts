@@ -1,31 +1,44 @@
 import { useEffect } from 'react';
 
-type UseOutsideClickClose = {
-	isOpen: boolean;
+type UseOutsideClickCloseOrEsc = {
+	isSidebarOpen: boolean;
 	onChange: (newValue: boolean) => void;
 	onClose?: () => void;
 	rootRef: React.RefObject<HTMLDivElement>;
 };
 
-export const useOutsideClickClose = ({
-	isOpen,
+export const useOutsideClickCloseOrEsc = ({
+	isSidebarOpen,
 	rootRef,
 	onClose,
 	onChange,
-}: UseOutsideClickClose) => {
+}: UseOutsideClickCloseOrEsc) => {
 	useEffect(() => {
+		if (!isSidebarOpen) {
+			return;
+		}
+
 		const handleClick = (event: MouseEvent) => {
 			const { target } = event;
 			if (target instanceof Node && !rootRef.current?.contains(target)) {
-				isOpen && onClose?.();
+				isSidebarOpen && onClose?.();
+				onChange?.(false);
+			}
+		};
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				isSidebarOpen && onClose?.();
 				onChange?.(false);
 			}
 		};
 
 		window.addEventListener('mousedown', handleClick);
+		window.addEventListener('keydown', handleKeyDown);
 
 		return () => {
 			window.removeEventListener('mousedown', handleClick);
+			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, [onClose, onChange, isOpen]);
+	}, [onClose, onChange, isSidebarOpen]);
 };
